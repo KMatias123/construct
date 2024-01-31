@@ -1,6 +1,11 @@
 #include "construct_types.h"
 #include "deconstruct.h"
 #include <boost/algorithm/string/classification.hpp>
+#include <cstdio>
+#include <cstdlib>
+
+#define COLOR_RED "\033[0;31m"
+#define COLOR_RESET "\033[0;0m"
 
 using namespace std;
 int get_line_indentation(string line) {
@@ -35,19 +40,20 @@ CON_TOKENTYPE get_token_type(string line) {
 }
 
 CON_COMPARISON str_to_comparison(string comp) {
-  if(comp == "e")
+  if(comp == "e" || comp == "==")
     return E;
-  if(comp == "ne")
+  if(comp == "ne" || comp == "!=")
     return NE;
-  if(comp == "l")
+  if(comp == "l" || comp == "<")
     return L;
-  if(comp == "g")
+  if(comp == "g" || comp == ">")
     return G;
-  if(comp == "le")
+  if(comp == "le" || comp == "<=")
     return LE;
-  if(comp == "ge")
+  if(comp == "ge" || comp == ">=")
     return GE;
-  //ERROR
+  // ERROR
+  return INVALID;
 }
 
 
@@ -103,12 +109,20 @@ con_macro* parse_macro(string line) {
   return tok_macro;
 }
 
-con_if* parse_if(string line) {
+con_if* parse_if(string line_st, int line) {
   con_if* tok_if = new con_if();
   vector<string> line_split;
-  boost::split(line_split, line, boost::is_any_of(" "));
+
+  boost::split(line_split, line_st, boost::is_any_of(" "));
+
   tok_if->condition.arg1 = line_split[1];
   tok_if->condition.op = str_to_comparison(line_split[2]);
+
+  if (tok_if->condition.op == INVALID) {
+    fprintf(stderr, "%sError: %sInvalid operand at line %i\n%s%s\n%s", COLOR_RED, COLOR_RESET, line, COLOR_RED, line_st.c_str(), COLOR_RESET);
+    exit(1);
+  }
+
   tok_if->condition.arg2 = line_split[3].substr(0, line_split[3].size()-1);
   return tok_if;
 }
@@ -172,31 +186,31 @@ con_funcall* parse_funcall(string line) {
 }
 
 // Does not expect formatted line, only lowercase
-con_token* parse_line(string line) {
+con_token* parse_line(string line_st, int line) {
   con_token* token = new con_token;
-  //remove multiple spaces from line
+  // remove multiple spaces from line
   string f_line = "";
   bool caught_space = false;
-  for(int i = 0; i < line.size(); i++) {
-    if(line[i] == ' ') {
+  for(int i = 0; i < line_st.size(); i++) {
+    if(line_st[i] == ' ') {
       if(!caught_space) {
-        f_line += line[i];
+        f_line += line_st[i];
         caught_space = true;
       }
     } else {
-      if(line[i] != '\t') {
-        f_line += line[i];
+      if(line_st[i] != '\t') {
+        f_line += line_st[i];
       }
       caught_space = false;
-    } 
+    }
   }
   token->tok_type = get_token_type(f_line);
-  switch(token->tok_type) {
+  switch (token->tok_type) {
     case MACRO:
       token->tok_macro = parse_macro(f_line);
       break;
     case IF:
-      token->tok_if = parse_if(f_line);
+      token->tok_if = parse_if(f_line, line);
       break;
     case WHILE:
       token->tok_while = parse_while(f_line);
@@ -218,28 +232,34 @@ con_token* parse_line(string line) {
   }
   return token;
 }
+
 vector<con_token*> parse_construct(string code) {
   vector<string> code_split;
   boost::split(code_split, code, boost::is_any_of("\n"), boost::token_compress_on);
   boost::to_lower(code);
   vector<con_token*> tokens;
   bool in_data = false;
-  for(int i = 0; i < code_split.size(); i++) {
+
+  for(int current_line = 0; current_line < code_split.size(); current_line++) {
     // Check if it contains any alphabet chars
-    if(code_split[i].find_first_of("abcdefghijklmnopqrstuvwxyz!") == std::string::npos) {
+    if(code_split[current_line].find_first_of("abcdefghijklmnopqrstuvwxyz!") == std::string::npos) {
       continue;
     }
-    con_token* new_token = parse_line(code_split[i]);
-    new_token->indentation = get_line_indentation(code_split[i]);
+
+    con_token* new_token = parse_line(code_split[current_line], current_line);
+    new_token->indentation = get_line_indentation(code_split[current_line]);
     tokens.push_back(new_token);
+
     if(new_token->tok_type == SECTION && (new_token->tok_section->name == ".data" || new_token->tok_section->name == ".bss")) {
       in_data = true;
+
     } else if(new_token->tok_type == SECTION && new_token->tok_section->name == ".text") {
       in_data = false;
+
     } else if(in_data) {
       //TODO free original con_x
       con_cmd* data_cmd = new con_cmd;
-      data_cmd->command = code_split[i];
+      data_cmd->command = code_split[current_line];
       new_token->tok_type = CMD;
       new_token->tok_cmd = data_cmd;
     }

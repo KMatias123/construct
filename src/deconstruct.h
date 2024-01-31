@@ -14,7 +14,7 @@ CON_COMPARISON str_to_comparison(std::string comp);
 std::vector<con_token*> delinearize_tokens(std::vector<con_token*> tokens);
 
 con_macro* parse_macro(std::string line);
-con_if* parse_if(std::string line);
+con_if* parse_if(std::string line_st, int line);
 con_while* parse_while(std::string line);
 con_section* parse_section(std::string line);
 con_tag* parse_tag(std::string line);
