@@ -122,12 +122,17 @@ con_if* parse_if(string line_st, int line) {
   tok_if->condition.arg2 = line_split[3].substr(0, line_split[3].size()-1);
   return tok_if;
 }
-con_while* parse_while(string line) {
+con_while* parse_while(string line_st, int line) {
   con_while* tok_while = new con_while();
   vector<string> line_split;
-  boost::split(line_split, line, boost::is_any_of(" "));
+  boost::split(line_split, line_st, boost::is_any_of(" "));
   tok_while->condition.arg1 = line_split[1];
   tok_while->condition.op = str_to_comparison(line_split[2]);
+
+  if (tok_while->condition.op == INVALID) {
+    invalidOperand(string("unknown file"), line_split, line);
+  }
+
   tok_while->condition.arg2 = line_split[3].substr(0, line_split[3].size()-1); // to remove :
   return tok_while;
 }
@@ -208,7 +213,7 @@ void parse_line(string line_st, con_token* token) {
       token->tok_if = parse_if(f_line, token->line);
       break;
     case WHILE:
-      token->tok_while = parse_while(f_line);
+      token->tok_while = parse_while(f_line, token->line);
       break;
     case FUNCTION:
       token->tok_function = parse_function(f_line);
