@@ -20,8 +20,8 @@ void invalidOperand(std::string filename, std::vector<std::string> line_split, s
   }
   
 
-  fprintf(stderr, "%sError: %sInvalid operand at line %i\n\n%s %s %s%s %s%s\n%s %s^%s\n",
-      COLOR_RED, COLOR_RESET, line, line_split[0].c_str(), line_split[1].c_str(), COLOR_RED, line_split[2].c_str(), COLOR_RESET, line_split[3].c_str(),
+  fprintf(stderr, "%sError: %sInvalid operand at line %i in file %s\n\n%s %s %s%s %s%s\n%s %s^%s\n",
+      COLOR_RED, COLOR_RESET, line, filename.c_str(), line_split[0].c_str(), line_split[1].c_str(), COLOR_RED, line_split[2].c_str(), COLOR_RESET, line_split[3].c_str(),
       filler->c_str(), COLOR_RED, COLOR_RESET);
 
   exit(EXIT_FAILURE);

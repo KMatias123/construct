@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
   std::ifstream inpfile(path);
   std::stringstream buffer;
   buffer << inpfile.rdbuf();
-  std::vector<con_token*> tokens = parse_construct(buffer.str());
+  std::vector<con_token*> tokens = parse_construct(buffer.str(), path);
 
   // Make _start global
   con_token* glob_tok = new con_token();

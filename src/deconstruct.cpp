@@ -106,31 +106,31 @@ con_macro* parse_macro(string line) {
   return tok_macro;
 }
 
-con_if* parse_if(string line_st, int line) {
+con_if* parse_if(con_linemetadata* metadata) {
   con_if* tok_if = new con_if();
   vector<string> line_split;
 
-  boost::split(line_split, line_st, boost::is_any_of(" "));
+  boost::split(line_split, metadata->line_st, boost::is_any_of(" "));
 
   tok_if->condition.arg1 = line_split[1];
   tok_if->condition.op = str_to_comparison(line_split[2]);
 
   if (tok_if->condition.op == INVALID) {
-    invalidOperand(string("unknown file"), line_split, line);
+    invalidOperand(metadata->filename, line_split, metadata->line);
   }
 
   tok_if->condition.arg2 = line_split[3].substr(0, line_split[3].size()-1);
   return tok_if;
 }
-con_while* parse_while(string line_st, int line) {
+con_while* parse_while(con_linemetadata* metadata) {
   con_while* tok_while = new con_while();
   vector<string> line_split;
-  boost::split(line_split, line_st, boost::is_any_of(" "));
+  boost::split(line_split, metadata->line_st, boost::is_any_of(" "));
   tok_while->condition.arg1 = line_split[1];
   tok_while->condition.op = str_to_comparison(line_split[2]);
 
   if (tok_while->condition.op == INVALID) {
-    invalidOperand(string("unknown file"), line_split, line);
+    invalidOperand(metadata->filename, line_split, metadata->line);
   }
 
   tok_while->condition.arg2 = line_split[3].substr(0, line_split[3].size()-1); // to remove :
@@ -187,7 +187,7 @@ con_funcall* parse_funcall(string line) {
 }
 
 // Does not expect formatted line, only lowercase
-void parse_line(string line_st, con_token* token) {
+void parse_line(string line_st, con_token* token, string filename) {
   // remove multiple spaces from line
   string f_line = "";
   bool caught_space = false;
@@ -205,15 +205,20 @@ void parse_line(string line_st, con_token* token) {
     }
   }
   token->tok_type = get_token_type(f_line);
+  con_linemetadata* metadata = new con_linemetadata;
+  metadata->filename = filename;
+  metadata->line = token->line;
+  metadata->line_st = f_line;
+
   switch (token->tok_type) {
     case MACRO:
       token->tok_macro = parse_macro(f_line);
       break;
     case IF:
-      token->tok_if = parse_if(f_line, token->line);
+      token->tok_if = parse_if(metadata);
       break;
     case WHILE:
-      token->tok_while = parse_while(f_line, token->line);
+      token->tok_while = parse_while(metadata);
       break;
     case FUNCTION:
       token->tok_function = parse_function(f_line);
@@ -232,7 +237,7 @@ void parse_line(string line_st, con_token* token) {
   }
 }
 
-vector<con_token*> parse_construct(string code) {
+vector<con_token*> parse_construct(string code, string path) {
   vector<string> code_split;
   boost::split(code_split, code, boost::is_any_of("\n"), boost::token_compress_on);
   boost::to_lower(code);
@@ -248,7 +253,7 @@ vector<con_token*> parse_construct(string code) {
     con_token* new_token = new con_token;
     new_token->line = current_line;
 
-    parse_line(code_split[current_line], new_token);
+    parse_line(code_split[current_line], new_token, path);
 
     new_token->indentation = get_line_indentation(code_split[current_line]);
     tokens.push_back(new_token);
