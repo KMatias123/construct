@@ -1,11 +1,8 @@
 #include "construct_types.h"
 #include "deconstruct.h"
 #include <boost/algorithm/string/classification.hpp>
-#include <cstdio>
-#include <cstdlib>
+#include "messages.h"
 
-#define COLOR_RED "\033[0;31m"
-#define COLOR_RESET "\033[0;0m"
 
 using namespace std;
 int get_line_indentation(string line) {
@@ -119,8 +116,7 @@ con_if* parse_if(string line_st, int line) {
   tok_if->condition.op = str_to_comparison(line_split[2]);
 
   if (tok_if->condition.op == INVALID) {
-    fprintf(stderr, "%sError: %sInvalid operand at line %i\n%s%s\n%s", COLOR_RED, COLOR_RESET, line, COLOR_RED, line_st.c_str(), COLOR_RESET);
-    exit(1);
+    invalidOperand(string("unknown file"), line_split, line);
   }
 
   tok_if->condition.arg2 = line_split[3].substr(0, line_split[3].size()-1);
@@ -186,8 +182,7 @@ con_funcall* parse_funcall(string line) {
 }
 
 // Does not expect formatted line, only lowercase
-con_token* parse_line(string line_st, int line) {
-  con_token* token = new con_token;
+void parse_line(string line_st, con_token* token) {
   // remove multiple spaces from line
   string f_line = "";
   bool caught_space = false;
@@ -210,7 +205,7 @@ con_token* parse_line(string line_st, int line) {
       token->tok_macro = parse_macro(f_line);
       break;
     case IF:
-      token->tok_if = parse_if(f_line, line);
+      token->tok_if = parse_if(f_line, token->line);
       break;
     case WHILE:
       token->tok_while = parse_while(f_line);
@@ -230,7 +225,6 @@ con_token* parse_line(string line_st, int line) {
       token->tok_cmd = parse_cmd(f_line);
       break;
   }
-  return token;
 }
 
 vector<con_token*> parse_construct(string code) {
@@ -245,8 +239,12 @@ vector<con_token*> parse_construct(string code) {
     if(code_split[current_line].find_first_of("abcdefghijklmnopqrstuvwxyz!") == std::string::npos) {
       continue;
     }
+    
+    con_token* new_token = new con_token;
+    new_token->line = current_line;
 
-    con_token* new_token = parse_line(code_split[current_line], current_line);
+    parse_line(code_split[current_line], new_token);
+
     new_token->indentation = get_line_indentation(code_split[current_line]);
     tokens.push_back(new_token);
 

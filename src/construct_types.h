@@ -36,6 +36,7 @@ enum CON_TOKENTYPE {
 struct con_token {
   CON_TOKENTYPE tok_type;
   int indentation;
+  int line;
   struct con_section* tok_section;
   struct con_tag* tok_tag;
   struct con_while* tok_while;
