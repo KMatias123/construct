@@ -106,7 +106,7 @@ con_macro* parse_macro(string line) {
   return tok_macro;
 }
 
-con_if* parse_if(con_linemetadata* metadata) {
+con_if* parse_if(linemetadata* metadata) {
   con_if* tok_if = new con_if();
   vector<string> line_split;
 
@@ -122,7 +122,7 @@ con_if* parse_if(con_linemetadata* metadata) {
   tok_if->condition.arg2 = line_split[3].substr(0, line_split[3].size()-1);
   return tok_if;
 }
-con_while* parse_while(con_linemetadata* metadata) {
+con_while* parse_while(linemetadata* metadata) {
   con_while* tok_while = new con_while();
   vector<string> line_split;
   boost::split(line_split, metadata->line_st, boost::is_any_of(" "));
@@ -205,7 +205,7 @@ void parse_line(string line_st, con_token* token, string filename) {
     }
   }
   token->tok_type = get_token_type(f_line);
-  con_linemetadata* metadata = new con_linemetadata;
+  linemetadata* metadata = new linemetadata;
   metadata->filename = filename;
   metadata->line = token->line;
   metadata->line_st = f_line;

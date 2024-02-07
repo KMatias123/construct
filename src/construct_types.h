@@ -48,7 +48,7 @@ struct con_token {
   std::vector<con_token*> tokens; // Only non-empty for if, while and function tokens
 };
 
-struct con_linemetadata {
+struct linemetadata {
   std::string line_st;
   int line;
   std::string filename;
