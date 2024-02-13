@@ -15,13 +15,13 @@ CON_COMPARISON str_to_comparison(std::string comp);
 
 std::vector<con_token*> delinearize_tokens(std::vector<con_token*> tokens);
 
-con_macro* parse_macro(std::string line);
+con_macro* parse_macro(linemetadata* metadata);
 con_if* parse_if(linemetadata* metadata);
-con_while* parse_while(std::string line_st, int line);
-con_section* parse_section(std::string line);
-con_tag* parse_tag(std::string line);
-con_cmd* parse_cmd(std::string line);
-con_function* parse_function(std::string line);
-con_funcall* parse_funcall(std::string line);
+con_while* parse_while(linemetadata* metadata);
+con_section* parse_section(linemetadata* metadata);
+con_tag* parse_tag(linemetadata* metadata);
+con_cmd* parse_cmd(linemetadata* metadata);
+con_function* parse_function(linemetadata* metadata);
+con_funcall* parse_funcall(linemetadata* metadata);
 void parse_line(std::string line, con_token new_token, std::string path);
 std::vector<con_token*> parse_construct(std::string code, std::string path);

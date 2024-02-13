@@ -98,11 +98,11 @@ vector<con_token*> delinearize_tokens(std::vector<con_token*> tokens) {
   return delinearized_tokens;
 }
 
-con_macro* parse_macro(string line) {
+con_macro* parse_macro(linemetadata* metadata) {
   con_macro* tok_macro = new con_macro();
-  int spacepos = line.find(' ');
-  tok_macro->macro = line.substr(1, spacepos-1);
-  tok_macro->value = line.substr(spacepos+1, line.size()-spacepos-1);
+  int spacepos = metadata->line_st.find(' ');
+  tok_macro->macro = metadata->line_st.substr(1, spacepos-1);
+  tok_macro->value = metadata->line_st.substr(spacepos+1, metadata->line_st.size()-spacepos-1);
   return tok_macro;
 }
 
@@ -136,22 +136,22 @@ con_while* parse_while(linemetadata* metadata) {
   tok_while->condition.arg2 = line_split[3].substr(0, line_split[3].size()-1); // to remove :
   return tok_while;
 }
-con_section* parse_section(string line) {
+con_section* parse_section(linemetadata* metadata) {
   con_section* tok_section = new con_section();
   vector<string> line_split;
-  boost::split(line_split, line, boost::is_any_of(" "));
+  boost::split(line_split, metadata->line_st, boost::is_any_of(" "));
   tok_section->name = line_split[1];
   return tok_section;
 }
-con_tag* parse_tag(string line) {
+con_tag* parse_tag(linemetadata* metadata) {
   con_tag* tok_tag = new con_tag();
-  tok_tag->name = line.substr(0, line.size()-1);
+  tok_tag->name = metadata->line_st.substr(0, metadata->line_st.size()-1);
   return tok_tag;
 }
-con_cmd* parse_cmd(string line) {
+con_cmd* parse_cmd(linemetadata* metadata) {
   con_cmd* tok_cmd = new con_cmd();
   vector<string> line_split;
-  boost::split(line_split, line, boost::is_any_of(" ,"));
+  boost::split(line_split, metadata->line_st, boost::is_any_of(" ,"));
   tok_cmd->command = line_split[0];
   if(line_split.size() > 1)
     tok_cmd->arg1 = line_split[1];
@@ -159,10 +159,10 @@ con_cmd* parse_cmd(string line) {
     tok_cmd->arg2 = line_split[3];
   return tok_cmd;
 }
-con_function* parse_function(string line) {
+con_function* parse_function(linemetadata* metadata) {
   con_function* tok_function = new con_function();
   vector<string> line_split;
-  boost::split(line_split, line, boost::is_any_of("():,"));
+  boost::split(line_split, metadata->line_st, boost::is_any_of("():,"));
   tok_function->name = line_split[0].substr(9, line_split[0].size()-9);
   for(int i = 1; i < line_split.size()-2; i++) {
     if(line_split[i].empty()) {
@@ -172,10 +172,10 @@ con_function* parse_function(string line) {
   }
   return tok_function;
 }
-con_funcall* parse_funcall(string line) {
+con_funcall* parse_funcall(linemetadata* metadata) {
   con_funcall* tok_funcall = new con_funcall();
   vector<string> line_split;
-  boost::split(line_split, line, boost::is_any_of("(),"));
+  boost::split(line_split, metadata->line_st, boost::is_any_of("(),"));
   tok_funcall->funcname = line_split[0].substr(5, line_split[0].size()-5);
   for(int i = 1; i < line_split.size()-1; i++) {
     if(line_split[i].empty()) {
@@ -212,7 +212,7 @@ void parse_line(string line_st, con_token* token, string filename) {
 
   switch (token->tok_type) {
     case MACRO:
-      token->tok_macro = parse_macro(f_line);
+      token->tok_macro = parse_macro(metadata);
       break;
     case IF:
       token->tok_if = parse_if(metadata);
@@ -221,18 +221,18 @@ void parse_line(string line_st, con_token* token, string filename) {
       token->tok_while = parse_while(metadata);
       break;
     case FUNCTION:
-      token->tok_function = parse_function(f_line);
+      token->tok_function = parse_function(metadata);
       break;
     case FUNCALL:
-      token->tok_funcall = parse_funcall(f_line);
+      token->tok_funcall = parse_funcall(metadata);
     case SECTION:
-      token->tok_section = parse_section(f_line);
+      token->tok_section = parse_section(metadata);
       break;
     case TAG:
-      token->tok_tag = parse_tag(f_line);
+      token->tok_tag = parse_tag(metadata);
       break;
     case CMD:
-      token->tok_cmd = parse_cmd(f_line);
+      token->tok_cmd = parse_cmd(metadata);
       break;
   }
 }
@@ -249,7 +249,7 @@ vector<con_token*> parse_construct(string code, string path) {
     if(code_split[current_line].find_first_of("abcdefghijklmnopqrstuvwxyz!") == std::string::npos) {
       continue;
     }
-    
+
     con_token* new_token = new con_token;
     new_token->line = current_line;
 
