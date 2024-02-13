@@ -116,14 +116,7 @@ con_if* parse_if(linemetadata* metadata) {
   tok_if->condition.op = str_to_comparison(line_split[2]);
 
   if (tok_if->condition.op == INVALID) {
-    string* filename = new string;
-    size_t* line = new size_t;
-
-    *filename = metadata->filename;
-    *line = metadata->line;
-    delete metadata;
-
-    invalidOperand(filename, line_split, line);
+    invalidOperand(metadata, line_split, 2);
   }
 
   tok_if->condition.arg2 = line_split[3].substr(0, line_split[3].size()-1);
@@ -137,14 +130,7 @@ con_while* parse_while(linemetadata* metadata) {
   tok_while->condition.op = str_to_comparison(line_split[2]);
 
   if (tok_while->condition.op == INVALID) {
-    string* filename = new string;
-    size_t* line = new size_t;
-
-    *filename = metadata->filename;
-    *line = metadata->line;
-    delete metadata;
-
-    invalidOperand(filename, line_split, line);
+    invalidOperand(metadata, line_split, 2);
   }
 
   tok_while->condition.arg2 = line_split[3].substr(0, line_split[3].size()-1); // to remove :

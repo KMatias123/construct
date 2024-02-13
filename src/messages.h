@@ -1,4 +1,5 @@
+#include "./construct_types.h"
 #include <string>
 #include <vector>
 
-void invalidOperand(std::string* filename, std::vector<std::string> line_st, size_t* line);
+void invalidOperand(linemetadata* metadata, std::vector<std::string> line_st, size_t operand_index);
