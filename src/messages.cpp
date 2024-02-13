@@ -23,17 +23,16 @@ void invalidOperand(linemetadata* metadata, std::vector<std::string> line_split,
     length += line_split[i].length();
   }
 
-  std::string* filler = new std::string;
+  std::string filler = std::string();
 
   for (int i = 0; i < length; i++) {
-    filler->append(" ");
+    filler.append(" ");
   }
 
   std::cerr << "Error: Invalid operand at line " << metadata->line <<
     " in file " << metadata->filename.c_str() << "\n\n" << line_split[0].c_str() << " " << line_split[1].c_str() <<
-    " " << line_split[2].c_str() << " " << line_split[3].c_str() << "\n" << filler->c_str() << " ^\n";
+    " " << line_split[2].c_str() << " " << line_split[3].c_str() << "\n" << filler.c_str() << " ^\n";
 
-  delete filler;
   delete metadata;
   exit(EXIT_FAILURE);
 }
